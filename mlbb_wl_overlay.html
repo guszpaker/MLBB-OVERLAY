@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MLBB W/L Overlay</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#111;color:#fff}
+.wrap{max-width:420px;margin:auto;padding:20px}
+h2{margin:0 0 18px}
+.card{background:#1d1d1d;border-radius:18px;padding:20px}
+.row{display:flex;gap:12px;align-items:center;justify-content:center}
+.stat{flex:1;text-align:center;background:#292929;border-radius:14px;padding:16px}
+.num{font-size:48px;font-weight:800}
+.label{font-size:14px;opacity:.7}
+button{border:0;border-radius:12px;padding:14px 18px;font-size:18px;font-weight:700;color:#fff;background:#333}
+.win{background:#168447}.loss{background:#b83232}.reset{width:100%;margin-top:16px;background:#555}
+.overlay{display:none;position:fixed;inset:0;background:transparent;align-items:flex-start;justify-content:center;padding-top:35px;pointer-events:none}
+.overlayBox{font-weight:900;font-size:34px;text-shadow:2px 2px 5px #000,-2px -2px 5px #000;background:rgba(0,0,0,.35);padding:7px 18px;border-radius:12px}
+.overlay .w{color:#45e58a}.overlay .l{color:#ff5e5e}
+.small{font-size:13px;opacity:.65;line-height:1.5;margin-top:16px}
+</style>
+</head>
+<body>
+<div id="control" class="wrap">
+  <h2>MLBB W/L Overlay</h2>
+  <div class="card">
+    <div class="row">
+      <div class="stat"><div class="num" id="w">0</div><div class="label">WINS</div></div>
+      <div class="stat"><div class="num" id="l">0</div><div class="label">LOSSES</div></div>
+    </div>
+    <div class="row" style="margin-top:16px">
+      <button class="win" onclick="change('w',1)">+ WIN</button>
+      <button class="loss" onclick="change('l',1)">+ LOSS</button>
+    </div>
+    <button class="reset" onclick="resetScore()">RESET</button>
+    <div class="small">
+      Untuk mode overlay, buka halaman ini dengan <b>?overlay</b> di belakang alamat.
+      Kontrol dan overlay bisa dibuka di dua tab/perangkat yang sama; perubahan dikirim real-time.
+    </div>
+  </div>
+</div>
+
+<div id="overlay" class="overlay">
+  <div class="overlayBox"><span class="w">W <span id="ow">0</span></span> <span style="opacity:.8">|</span> <span class="l">L <span id="ol">0</span></span></div>
+</div>
+
+<script>
+const channel = new BroadcastChannel('mlbb_wl_overlay');
+let score = JSON.parse(localStorage.getItem('mlbbScore') || '{"w":0,"l":0}');
+function render(){
+  document.getElementById('w').textContent=score.w;
+  document.getElementById('l').textContent=score.l;
+  document.getElementById('ow').textContent=score.w;
+  document.getElementById('ol').textContent=score.l;
+}
+function send(){localStorage.setItem('mlbbScore',JSON.stringify(score));channel.postMessage(score);render()}
+function change(k,n){score[k]=Math.max(0,score[k]+n);send()}
+function resetScore(){score={w:0,l:0};send()}
+channel.onmessage=e=>{score=e.data;render()}
+render();
+
+if(location.search.includes('overlay')){
+  document.getElementById('control').style.display='none';
+  document.body.style.background='transparent';
+  document.getElementById('overlay').style.display='flex';
+}
+</script>
+</body>
+</html>
